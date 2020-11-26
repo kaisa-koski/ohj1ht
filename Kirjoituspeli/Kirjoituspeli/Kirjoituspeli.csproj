@@ -11,5 +11,14 @@
         <PackageReference Include="Jypeli.Core" Version="9.*" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="lauseet.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="pisteet.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
 

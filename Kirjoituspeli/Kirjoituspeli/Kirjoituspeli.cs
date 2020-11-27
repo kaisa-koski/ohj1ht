@@ -1,68 +1,113 @@
 using System;
+using System.Text;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
 using Jypeli;
-using Jypeli.Assets;
-using Jypeli.Controls;
 using Jypeli.Widgets;
 
 /// @author Kaisa Koski
-/// @version 25.11.2020
+/// @version 27.11.2020
 
 
 public class Kirjoituspeli : Game
 {
     private List<string> lauseet;
     private Label mallilause;
-    private Label ohje; //TODO: Onko tarpeellinen?
+    private Label ohje;
     private Timer aikalaskuri;
-    private InputWindow kysymysikkuna; //TODO: saisiko poistettua?
-    private int toistot = 1;
-    private bool voikoKirjoittaa = false; //TODO: Arvioi, voisiko tämän tehdä paremmin
-    ScoreList toplista = new ScoreList(5, true, 999.999, "nimetön");
+    private int toistot = -1;
+    private bool voikoKirjoittaa = false;
+    ScoreList toplista;
 
 
+    //TODO: Dokumentoinnit kuntoon
+    //TODO: Kirjoita lauseet
+    //TODO: Koristelut: värit, kuvat, äänet
+    //TODO: Pelitilanteesta Escilla takaisin alkuvalikkoon?
 
     /// <summary>
-    /// Käynnistää pelin 
+    /// Käynnistää pelin alusta. 
     /// </summary>
     public override void Begin()
     {
-        Level.BackgroundColor = Color.SkyBlue;
-        //Level.Background.CreateGradient(Color.SkyBlue, Color.Pink);
-        LataaLauseet();
+        Level.Background.CreateGradient(Color.SkyBlue, Color.Pink);
+        AvaaAlkuvalikko();
         LataaPisteet();
-        MallilauseEsille();
-        LuoAikaLaskuri();
-
-        HighScoreWindow topIkkuna = new HighScoreWindow(Level.Width * 0.5, Level.Height * 0.5, "TOP5", toplista); //TODO: poista kun ei enää tarvitse
-        
-        Add(topIkkuna);
-
-
-        Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli"); //TODO: Tätä ei ehkä tarvitse, jos peliin tulee alkuvalikko myöhemmin
         Keyboard.Listen(Key.LeftShift, ButtonState.Pressed, VastaaKysymykseen, null);
     }
 
 
     /// <summary>
-    /// Lataa kirjoitettavat esimerkkilauseet tekstitiedostosta ja lisää ne listaan.
+    /// Avaa alkuvalikon.
     /// </summary>
-    private void LataaLauseet()
+    private void AvaaAlkuvalikko()
     {
+        MultiSelectWindow alkuvalikko = new MultiSelectWindow("Kirjoituspeli", "Uusi peli", "Ohjeet", "Parhaat pisteet", "Lopeta");
+        alkuvalikko.AddItemHandler(0, AloitaPeli);
+        alkuvalikko.AddItemHandler(1, NaytaPeliohjeet);
+        alkuvalikko.AddItemHandler(2, delegate { NaytaToplista(); });
+        alkuvalikko.AddItemHandler(3, Exit);
+        alkuvalikko.DefaultCancel = -1;
+        Add(alkuvalikko);
+    }
+
+
+    /// <summary>
+    /// Lataa ohjeet tekstitiedostosta ja asettaa ne näytille.
+    /// </summary>
+    private void NaytaPeliohjeet()
+    {
+        List<string> peliohje = new List<string>(LataaTiedosto("ohjeet.txt"));
+        Label ohjeteksti = new Label("");
+        StringBuilder sb = new StringBuilder(peliohje[0]);
+        for (int i = 1; i < peliohje.Count; i++)
+        {
+            sb.Append("\n" + peliohje[i]);
+        }
+        ohjeteksti.Text = sb.ToString();
+        ohjeteksti.TextColor = Color.White;
+        ohjeteksti.BorderColor = Color.Black;
+        Font omaFontti = new Font(25);
+        omaFontti.StrokeAmount = 1;
+        ohjeteksti.Font = omaFontti;
+        Add(ohjeteksti);
+        Keyboard.Listen(Key.Enter, ButtonState.Pressed, delegate { Remove(ohjeteksti); AvaaAlkuvalikko(); }, null);
+    }
+
+
+    /// <summary>
+    /// Aloittaa varsinaisen pelikerran, lataa lauseet tiedostosta,
+    /// laittaa ensimmäisen mallilauseen esille ja luo aikalaskurin.
+    /// </summary>
+    private void AloitaPeli()
+    {
+        lauseet = LataaTiedosto("lauseet.txt");
+        toistot = 3;
+        mallilause = new Label(ArvoLause());
+        mallilause.Position = new Vector(0, Level.Top * 0.5);
+        Add(mallilause);
+        LuoAikaLaskuri();
+    }
+
+
+    /// <summary>
+    /// Lisää parametrina annetun tekstitiedoston rivit merkkijonolistaan. 
+    /// </summary>
+    /// <param name="tiedosto">Tekstitiedosto</param>
+    /// <returns>String-lista tiedoston riveistä</returns>
+    private List<string> LataaTiedosto(string tiedosto)
+    {
+        List<string> lista = new List<string>();
         try
         {
-            lauseet = File.ReadAllLines("lauseet.txt").ToList();
+            lista = File.ReadAllLines(tiedosto).ToList();
         }
         catch (FileNotFoundException)
         {
-            Label virheilmoitus = new Label("Pelin tekstitiedosto virheellinen, sulje peli");
-            virheilmoitus.TextColor = Color.Red;
-            virheilmoitus.Position = new Vector(0, Level.Bottom * 0.80);
-            Add(virheilmoitus);
+            Virheilmoitus("Tekstitiedosto puuttuu");
         }
+        return lista;
     }
 
 
@@ -71,42 +116,31 @@ public class Kirjoituspeli : Game
     /// </summary>
     private void LataaPisteet()
     {
+        toplista = new ScoreList(5, true, 999.99, "-");
         try
         {
-            toplista = DataStorage.TryLoad<ScoreList>(toplista, "pisteet.txt");
-
+            toplista = DataStorage.Load<ScoreList>(toplista, "pisteet.xml");
         }
         catch (FileNotFoundException)
         {
-            Label virheilmoitus = new Label("HUOM! Pelin pistetiedostossa virhe, parhaiden aikojen tallennus ei onnistu");
-            virheilmoitus.TextColor = Color.Red;
-            virheilmoitus.Position = new Vector(0, Level.Bottom * 0.9);
-            Add(virheilmoitus);
+            Virheilmoitus("Puuttuva pistetiedosto");
+        }
+        catch (System.Xml.XmlException)
+        {
+            Virheilmoitus("Virheellinen pistetiedosto");
         }
     }
 
 
     /// <summary>
-    /// Aliohjelma lisää kirjoitettavan mallilauseen ruudulle pelin alussa.
-    /// </summary>
-    private void MallilauseEsille()
-    {
-        mallilause = new Label(ArvoLause());
-        mallilause.Position = new Vector(0, Level.Top * 0.5);
-        Add(mallilause);
-    }
-
-
-    /// <summary>
-    /// Aliohjelma luo ja lisää peliin aikalaskurin.
+    /// Lisää peliin aikalaskurin.
     /// </summary>
     private void LuoAikaLaskuri()
     {
         aikalaskuri = new Timer();
-
         Label aikanaytto = new Label();
         aikanaytto.TextColor = Color.White;
-        aikanaytto.DecimalPlaces = 3;
+        aikanaytto.DecimalPlaces = 2;
         aikanaytto.BindTo(aikalaskuri.SecondCounter);
         aikanaytto.Position = new Vector(Level.Right * 0.9, Level.Top * 0.9);
         Add(aikanaytto);
@@ -114,13 +148,14 @@ public class Kirjoituspeli : Game
 
 
     /// <summary>
-    /// Avaa kirjoitusikkunan ja laittaa sekuntikellon päälle.
+    /// Avaa kirjoitusikkunan ja laittaa sekuntikellon päälle,
+    /// jos vastaamisen aloittaminen on mahdollista.
     /// </summary>
     private void VastaaKysymykseen()
     {
         if (voikoKirjoittaa)
         {
-            ohje.Text = ""; //TODO: Mieti tätä vielä, pystyisikö tekemään ilman attribuuttia.                                
+            ohje.Text = "";
             LuoKysymysikkuna();
             aikalaskuri.Start();
         }
@@ -128,21 +163,53 @@ public class Kirjoituspeli : Game
 
 
     /// <summary>
-    /// Arpoo ja palauttaa mallilauseista satunnaisen lauseen, kunnes lauseita on arvottu 
-    /// toistojen verran. Kun lause on arvottu, se poistetaan listasta, joten 
-    /// samaa lausetta ei tule samalla pelikerralla kahdesti. Jos listassa on
-    /// vähemmän lauseita kuin toistojen määrä, palauttaa virheilmoituksen.
+    /// Arpoo ja palauttaa listasta satunnaisen lauseen, jos toistojen 
+    /// määrä on yli 0. Kun lause on arvottu, se poistetaan listasta. 
+    /// Jos listassa on vähemmän lauseita kuin toistojen määrä, 
+    /// tekee virheilmoituksen ja palauttaa tyhjän merkkijonon.
     /// </summary>
-    /// <returns>Mallilause, pelikierroksen loppumisilmoitus tai virheilmoitus</returns>
+    /// <returns>Satunnainen alkio string-listasta tai tyhjä merkkijono</returns>
     private string ArvoLause()
     {
-        if ((lauseet == null) || (lauseet.Count < toistot)) return "Mallilausetta ei voitu ladata";
+        if (toistot <= 0)
+        {
+            Virheilmoitus("Virhe toistojen määrässä");
+            return "";
+        }
+        if ((lauseet == null) || (lauseet.Count < toistot))
+        {
+            Virheilmoitus("Lausetta ei voitu ladata");
+            return "";
+        }
         toistot--;
         int lauseenIndeksi = RandomGen.NextInt(lauseet.Count());
         string lause = lauseet[lauseenIndeksi];
         lauseet.RemoveAt(lauseenIndeksi);
         OhjeEsille();
         return lause;
+    }
+
+
+    /// <summary>
+    /// Tyhjentää peliruudulta kaikki oliot ja lisää virheestä
+    /// ilmoittavan ilmoituksen ruudulle.
+    /// </summary>
+    /// <param name="virhe">Merkkijono, joka tarkentaa mistä virheestä on kyse</param>
+    private void Virheilmoitus(string virhe)
+    {
+        ClearAll();
+        Label[] v = new Label[3];
+        string[] t = new string[] { "VIRHE", virhe, "Paina Enter-painiketta sulkeaksesi pelin" };
+        double y = Level.Top * 0.3;
+        for (int i = 0; i < v.Length; i++)
+        {
+            v[i] = new Label(t[i]);
+            v[i].TextColor = Color.Red;
+            v[i].Position = new Vector(0, y);
+            Add(v[i]);
+            y -= v[i].Height * 1.5;
+        }
+        Keyboard.Listen(Key.Enter, ButtonState.Pressed, Exit, null);
     }
 
 
@@ -166,7 +233,7 @@ public class Kirjoituspeli : Game
     /// <param name="viesti">Teksti, joka tulee kirjoitusikkunan yläosaan, oletuksena tyhjä</param>
     private void LuoKysymysikkuna(string viesti = "")
     {
-        kysymysikkuna = new InputWindow(viesti);
+        InputWindow kysymysikkuna = new InputWindow(viesti);
         kysymysikkuna.TextEntered += ProcessInput;
         kysymysikkuna.InputBox.Color = Color.White;
         kysymysikkuna.BorderColor = Color.Darker(Color.SkyBlue, 50);
@@ -176,75 +243,99 @@ public class Kirjoituspeli : Game
 
     /// <summary>
     /// Aliohjelmassa verrataan käyttäjän teksti-ikkunaan 
-    /// kirjoittamaa tekstiä mallilauseeseen.
+    /// kirjoittamaa tekstiä mallilauseeseen. Jos vastaus on oikein,
+    /// arpoon uuden mallilauseen (jos 0 < toistot) tai siirtyy ajan 
+    /// vertailuun (toistot=0). Jos vastaus on väärin, avaa uuden
+    /// vastausikkunan.
     /// </summary>
     /// <param name="ikkuna">Teksti-ikkuna, johon käyttäjä kirjoittaa vastauksensa</param>
     private void ProcessInput(InputWindow ikkuna)
     {
-        string vastaus = ikkuna.InputBox.Text;
+        string vastaus = ikkuna.InputBox.Text.Trim('\r', '\n');
         if (vastaus.Equals(mallilause.Text))
         {
             aikalaskuri.Pause();
             voikoKirjoittaa = false;
-
-            mallilause.Text = "Oikein!";
             if (toistot == 0)
             {
+                mallilause.Text = "Oikein! \n Valmis!";
                 double aika = aikalaskuri.CurrentTime;
-                string aikaMj = aika.ToString("N3");
-                mallilause.Text = "Valmis! " +
-                                   "\n Aikasi oli " + aikaMj + " sekuntia.";
-                Timer.SingleShot(2.5, delegate { PelinLopetus(aika); });
-
+                Timer.SingleShot(2.5, delegate { mallilause.Text = ""; Ajantarkastus(aika); });
             }
-            else Timer.SingleShot(2.5, delegate { mallilause.Text = ArvoLause(); });
+            else
+            {
+                mallilause.Text = "Oikein!";
+                Timer.SingleShot(2.5, delegate { mallilause.Text = ArvoLause(); });
+            }
         }
         else
         {
             LuoKysymysikkuna("Yritä uudelleen!");
-            //TODO: Laittaisiko tähän kellon menemään pauselle ja näyttäisi mikä meni väärin?
         }
     }
 
 
-    //TODO: Dokumentointi
     /// <summary>
-    /// 
+    /// Tarkastaa, pääseekö parametrilla annetulla arvolla
+    /// parhaiden tulosten joukkoon.
     /// </summary>
-    /// <param name="aika"></param>
-    private void PelinLopetus(double aika)
+    /// <param name="aika">Uusi arvo, jonka kelpaavuutta top-listalle tarkastellaan</param>
+    private void Ajantarkastus(double aika)
     {
-
         if (toplista.Qualifies(aika))
         {
             InputWindow kysyNimi = new InputWindow("Pääsit TOP5-listalle, anna nimesi:");
-            kysyNimi.MaxCharacters = 10;
+            kysyNimi.MaxCharacters = 6;
             kysyNimi.InputBox.Color = Color.White;
             kysyNimi.BorderColor = Color.Darker(Color.SkyBlue, 50);
-            kysyNimi.TextEntered += LisaaNimi;
+            kysyNimi.TextEntered += delegate { LisaaNimi(kysyNimi); };
             Add(kysyNimi);
         }
-        //TODO: Alkuvalikkoon palaaminen
+        else
+        {
+            string eiEnnatys = "Tällä kertaa ei tullut uutta ennätystä. \n Aikasi oli " + aika.ToString("N2");
+            NaytaToplista(eiEnnatys);
+        }
     }
 
-    //TODO: Dokumentointi
+
+
     /// <summary>
-    /// 
+    /// Lisää käyttäjän antaman nimen sekä päivämäärän ja ajan 
+    /// tuloslistalle. Sitten näyttää tuloslistan.
     /// </summary>
-    /// <param name="kysyNimi"></param>
-    private void LisaaNimi(InputWindow kysyNimi)
+    /// <param name="ikkuna">Kysymysikkuna, johon käyttäjä on kirjoittanut nimensä</param>
+    private void LisaaNimi(InputWindow ikkuna)
     {
-        string nimi = kysyNimi.InputBox.Text;
+        string nimi = ikkuna.InputBox.Text.Trim('\r', '\n');
         string pvm = DateTime.Now.ToString("g");
-        string listamerkinta = nimi + "\t\t\t\t" + pvm;
+        string listamerkinta = nimi.PadRight(20) + pvm;
         int sijoitus = toplista.Add(listamerkinta, Math.Round(aikalaskuri.CurrentTime, 4)) - 1;
-        Label ennatys = new Label("Onnittelut, pääsit sijalle " + sijoitus);
-        ennatys.Position = new Vector(0, mallilause.Y * 0.8);
-        Add(ennatys);
-        DataStorage.Save<ScoreList>(toplista, "pisteet.txt");
+        string ennatys = "Onnittelut, pääsit sijalle " + sijoitus;
+        NaytaToplista(ennatys);
+    }
+
+
+    /// <summary>
+    /// Näyttää tuloslistan ja sen yllä parametrina annetun tekstin
+    /// (oletuksena tyhjä). Kun ikkuna suljetaan, tallentaa toplistan tiedostoon,
+    /// poistaa kaikki pelin oliot japalaa pelin aloitukseen.
+    /// </summary>
+    /// <param name="teksti">Teksti joka näytetään tuloslistan yläpuolella</param>
+    private void NaytaToplista(string teksti = "")
+    {
+        Label label = new Label(teksti);
+        label.Position = new Vector(0, Level.Top * 0.4);
+        Add(label);
         HighScoreWindow topIkkuna = new HighScoreWindow(Level.Width * 0.5, Level.Height * 0.5, "TOP5", toplista);
-        topIkkuna.Position = new Vector(0, ennatys.Y * 0.8 - topIkkuna.Height / 2);
+        topIkkuna.Position = new Vector(0, Level.Top * -0.2);
         Add(topIkkuna);
+        topIkkuna.Closed += delegate
+        {
+            DataStorage.Save<ScoreList>(toplista, "pisteet.xml");
+            ClearAll();
+            Begin();
+        };
     }
 }
 

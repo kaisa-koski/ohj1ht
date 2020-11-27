@@ -8,13 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Jypeli.Core" Version="9.*" />
+        <PackageReference Include="Jypeli.Core" Version="9.1.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="lauseet.txt">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
       <None Update="pisteet.txt">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>

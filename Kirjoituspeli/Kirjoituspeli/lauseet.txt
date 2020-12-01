@@ -1,0 +1,10 @@
+Ohjelmointi tarkoittaa tietokoneelle annettavia toimintaohjeita.
+Suoritin ymmärtää suoraan konekielellä kirjoitettuja ohjelmia.
+Ohjelmointi suoraan konekielellä on hidasta ja virhealtista.
+Symbolinen konekieli kääntyy lopulta ykkösiksi ja nolliksi.
+Tietyt ohjelmointikielet tukevat automaattista roskienkeruuta.
+Merkkijonot voidaan jakaa muuttumattomiin ja muokattaviin.
+Tyyppimuunnoksessa muuttujan tyyppi vaihdetaan toisenlaiseksi.
+Funktiokti kutsutaan aliohjelmaa, joka palauttaa jonkin arvon.
+Silmukalla on mahdollista välttää koodin turhaa toistamista.
+Rekursiivinen aliohjelma on sellainen, joka kutsuu itseään.

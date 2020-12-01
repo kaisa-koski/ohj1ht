@@ -18,11 +18,9 @@ public class Kirjoituspeli : Game
     private Timer aikalaskuri;
     private int toistot = -1;
     private bool voikoKirjoittaa = false;
-    ScoreList toplista;
+    private ScoreList toplista;
 
 
-    //TODO: Dokumentoinnit kuntoon
-    //TODO: Kirjoita lauseet
     //TODO: Koristelut: värit, kuvat, äänet
     //TODO: Pelitilanteesta Escilla takaisin alkuvalikkoon?
 
@@ -198,6 +196,7 @@ public class Kirjoituspeli : Game
     private void Virheilmoitus(string virhe)
     {
         ClearAll();
+        Level.Background.CreateGradient(Color.SkyBlue, Color.Pink);
         Label[] v = new Label[3];
         string[] t = new string[] { "VIRHE", virhe, "Paina Enter-painiketta sulkeaksesi pelin" };
         double y = Level.Top * 0.3;

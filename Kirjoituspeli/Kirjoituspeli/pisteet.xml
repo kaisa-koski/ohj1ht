@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<State>
+  <Object Name="default" TypeAssembly="Jypeli, Version=9.1.0.0, Culture=neutral, PublicKeyToken=null" Type="ScoreList">
+    <Field Name="_scores" Type="Jypeli.ScoreItem[], Jypeli, Version=9.1.0.0, Culture=neutral, PublicKeyToken=null">
+      <Array Type="Jypeli.ScoreItem[], Jypeli, Version=9.1.0.0, Culture=neutral, PublicKeyToken=null">
+        <Item Index="0" Type="Jypeli.ScoreItem, Jypeli, Version=9.1.0.0, Culture=neutral, PublicKeyToken=null">
+          <Field Name="Name" Type="System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+            <Value>Kaisa               28/11/2020 21:28</Value>
+          </Field>
+          <Field Name="Score" Type="System.Double, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+            <Value>35.79</Value>
+          </Field>
+        </Item>
+        <Item Index="1" Type="Jypeli.ScoreItem, Jypeli, Version=9.1.0.0, Culture=neutral, PublicKeyToken=null">
+          <Field Name="Name" Type="System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+            <Value>Kaisa               01/12/2020 15:19</Value>
+          </Field>
+          <Field Name="Score" Type="System.Double, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+            <Value>43.61</Value>
+          </Field>
+        </Item>
+        <Item Index="2" Type="Jypeli.ScoreItem, Jypeli, Version=9.1.0.0, Culture=neutral, PublicKeyToken=null">
+          <Field Name="Name" Type="System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+            <Value>Timo                28/11/2020 21:25</Value>
+          </Field>
+          <Field Name="Score" Type="System.Double, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+            <Value>45.21</Value>
+          </Field>
+        </Item>
+        <Item Index="3" Type="Jypeli.ScoreItem, Jypeli, Version=9.1.0.0, Culture=neutral, PublicKeyToken=null">
+          <Field Name="Name" Type="System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+            <Value>-</Value>
+          </Field>
+          <Field Name="Score" Type="System.Double, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+            <Value>999.99</Value>
+          </Field>
+        </Item>
+        <Item Index="4" Type="Jypeli.ScoreItem, Jypeli, Version=9.1.0.0, Culture=neutral, PublicKeyToken=null">
+          <Field Name="Name" Type="System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+            <Value>-</Value>
+          </Field>
+          <Field Name="Score" Type="System.Double, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+            <Value>999.99</Value>
+          </Field>
+        </Item>
+      </Array>
+    </Field>
+    <Field Name="LastEnteredName" Type="System.String, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+      <Value>Kaisa               01/12/2020 15:19</Value>
+    </Field>
+  </Object>
+</State>

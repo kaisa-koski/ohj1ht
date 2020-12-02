@@ -16,19 +16,33 @@ public class Kirjoituspeli : Game
     private Label mallilause;
     private Label ohje;
     private Timer aikalaskuri;
-    private int toistot = -1;
+    private int toistot;
     private bool voikoKirjoittaa = false;
     private ScoreList toplista;
 
+    private const int MAX_TOISTOT = 3;
+    private const double ODOTUS = 2.2;
 
     //TODO: Koristelut: värit, kuvat, äänet
     //TODO: Pelitilanteesta Escilla takaisin alkuvalikkoon?
+    //TODO: Uusi ennätys ei tallennu, jos pääsee top-listaan, mutta sulkee pelin sulkematta ensin listaa.
 
     /// <summary>
-    /// Käynnistää pelin alusta. 
+    /// Käynnistää pelin alussa. 
     /// </summary>
     public override void Begin()
     {
+        Aloita();
+    }
+
+
+    /// <summary>
+    /// Aliohjelma tyhjentää pelin olioista, asettaa taustavärin, lataa pistelistan
+    /// ja avaa alkuvalikon.
+    /// </summary>
+    private void Aloita() 
+    {
+        ClearAll();
         Level.Background.CreateGradient(Color.SkyBlue, Color.Pink);
         AvaaAlkuvalikko();
         LataaPisteet();
@@ -44,7 +58,7 @@ public class Kirjoituspeli : Game
         MultiSelectWindow alkuvalikko = new MultiSelectWindow("Kirjoituspeli", "Uusi peli", "Ohjeet", "Parhaat pisteet", "Lopeta");
         alkuvalikko.AddItemHandler(0, AloitaPeli);
         alkuvalikko.AddItemHandler(1, NaytaPeliohjeet);
-        alkuvalikko.AddItemHandler(2, delegate { NaytaToplista(); });
+        alkuvalikko.AddItemHandler(2, NaytaToplista, "");
         alkuvalikko.AddItemHandler(3, Exit);
         alkuvalikko.DefaultCancel = -1;
         Add(alkuvalikko);
@@ -64,10 +78,10 @@ public class Kirjoituspeli : Game
             sb.Append("\n" + peliohje[i]);
         }
         ohjeteksti.Text = sb.ToString();
-        ohjeteksti.TextColor = Color.White;
-        ohjeteksti.BorderColor = Color.Black;
-        Font omaFontti = new Font(25);
-        omaFontti.StrokeAmount = 1;
+        ohjeteksti.TextColor = Color.MediumPurple;
+        //ohjeteksti.BorderColor = Color.Black;
+        Font omaFontti = new Font(30);
+        // omaFontti.StrokeAmount = 1;
         ohjeteksti.Font = omaFontti;
         Add(ohjeteksti);
         Keyboard.Listen(Key.Enter, ButtonState.Pressed, delegate { Remove(ohjeteksti); AvaaAlkuvalikko(); }, null);
@@ -81,7 +95,7 @@ public class Kirjoituspeli : Game
     private void AloitaPeli()
     {
         lauseet = LataaTiedosto("lauseet.txt");
-        toistot = 3;
+        toistot = MAX_TOISTOT;
         mallilause = new Label(ArvoLause());
         mallilause.Position = new Vector(0, Level.Top * 0.5);
         Add(mallilause);
@@ -117,7 +131,7 @@ public class Kirjoituspeli : Game
         toplista = new ScoreList(5, true, 999.99, "-");
         try
         {
-            toplista = DataStorage.Load<ScoreList>(toplista, "pisteet.xml");
+            toplista = DataStorage.TryLoad<ScoreList>(toplista, "pisteet.xml");
         }
         catch (FileNotFoundException)
         {
@@ -198,7 +212,7 @@ public class Kirjoituspeli : Game
         ClearAll();
         Level.Background.CreateGradient(Color.SkyBlue, Color.Pink);
         Label[] v = new Label[3];
-        string[] t = new string[] { "VIRHE", virhe, "Paina Enter-painiketta sulkeaksesi pelin" };
+        string[] t = new string[] { "VIRHE", virhe, "Paina Enter-painiketta sulkeaksesi pelin" }; //Ilmoitukset eri labeleilla, jotta asettelu on kauniimpi.
         double y = Level.Top * 0.3;
         for (int i = 0; i < v.Length; i++)
         {
@@ -230,9 +244,13 @@ public class Kirjoituspeli : Game
     /// kirjoittaa vastauksensa.
     /// </summary>
     /// <param name="viesti">Teksti, joka tulee kirjoitusikkunan yläosaan, oletuksena tyhjä</param>
-    private void LuoKysymysikkuna(string viesti = "")
+    /// <param name="teksti">Teksti, joka tulee kirjoitusikkunan kirjoituskenttään, oletuksena tyhjä</param>
+    private void LuoKysymysikkuna( string viesti = "", string teksti="")
     {
         InputWindow kysymysikkuna = new InputWindow(viesti);
+        kysymysikkuna.InputBox.Text = teksti;
+        kysymysikkuna.InputBox.Cursor.Width = 2.5;
+        kysymysikkuna.InputBox.Cursor.Color = Color.Pink;
         kysymysikkuna.TextEntered += ProcessInput;
         kysymysikkuna.InputBox.Color = Color.White;
         kysymysikkuna.BorderColor = Color.Darker(Color.SkyBlue, 50);
@@ -259,17 +277,17 @@ public class Kirjoituspeli : Game
             {
                 mallilause.Text = "Oikein! \n Valmis!";
                 double aika = aikalaskuri.CurrentTime;
-                Timer.SingleShot(2.5, delegate { mallilause.Text = ""; Ajantarkastus(aika); });
+                Timer.SingleShot(ODOTUS, delegate { mallilause.Text = ""; Ajantarkastus(aika); });
             }
             else
             {
                 mallilause.Text = "Oikein!";
-                Timer.SingleShot(2.5, delegate { mallilause.Text = ArvoLause(); });
+                Timer.SingleShot(ODOTUS, delegate { mallilause.Text = ArvoLause(); });
             }
         }
         else
         {
-            LuoKysymysikkuna("Yritä uudelleen!");
+            LuoKysymysikkuna("Yritä uudelleen!", vastaus);
         }
     }
 
@@ -332,8 +350,7 @@ public class Kirjoituspeli : Game
         topIkkuna.Closed += delegate
         {
             DataStorage.Save<ScoreList>(toplista, "pisteet.xml");
-            ClearAll();
-            Begin();
+            Aloita();
         };
     }
 }

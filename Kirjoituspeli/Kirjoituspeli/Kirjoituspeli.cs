@@ -7,7 +7,7 @@ using Jypeli;
 using Jypeli.Widgets;
 
 /// @author Kaisa Koski
-/// @version 27.11.2020
+/// @version 4.12.2020
 
 
 public class Kirjoituspeli : Game
@@ -26,6 +26,8 @@ public class Kirjoituspeli : Game
     //TODO: Koristelut: värit, kuvat, äänet
     //TODO: Pelitilanteesta Escilla takaisin alkuvalikkoon?
     //TODO: Uusi ennätys ei tallennu, jos pääsee top-listaan, mutta sulkee pelin sulkematta ensin listaa.
+    //TODO: Painike jolla voi tyhjentää kirjoitusikkunan?
+    //TODO: Virheiden tarkempi erittely tms.
 
     /// <summary>
     /// Käynnistää pelin alussa. 
@@ -70,8 +72,8 @@ public class Kirjoituspeli : Game
     /// </summary>
     private void NaytaPeliohjeet()
     {
-        List<string> peliohje = new List<string>(LataaTiedosto("ohjeet.txt"));
-        Label ohjeteksti = new Label("");
+        List<string> peliohje = new List<string>(LataaTiedosto("ohjeet.txt")); //TODO: Tämän voisi tehdä järkevämmin, että lukisi                                                   
+        Label ohjeteksti = new Label("");                                      //tiedostosta rivi kerrallaan ja lisäisi suoraan sb:lle eikä listaan.
         StringBuilder sb = new StringBuilder(peliohje[0]);
         for (int i = 1; i < peliohje.Count; i++)
         {

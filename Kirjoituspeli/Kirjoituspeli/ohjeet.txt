@@ -1,17 +1,18 @@
 Kirjoituspelin ohjeet
 
 1. Pelissä on tarkoitus kirjoittaa ruudun yläosaan ilmestyvä
-   mallilause niin nopeasti kun pystyt tekemättä yhtään virhettä.
+   mallilause niin nopeasti kuin pystyt tekemättä yhtään virhettä.
 
 2. Lue mallilause rauhassa ennen kirjoittamisen aloittamista.
 
 3. Kun olet valmis, aloita kirjoittaminen. Painaessasi Shift-painiketta
-   isoa alkukirjainta varten ajanotto alkaa.
+   isoa alkukirjainta varten kirjoitusikkuna aukeaa ja ajanotto alkaa.
 
 4. Paina Enter-painiketta kun lause on valmis, ajanotto pysähtyy
     automaattisesti. Hetken kuluttua seuraava mallilause ilmestyy.
 
-5. Kirjoita samalla tavalla kaikki lauseet, kunnes peli ilmoittaa "Valmis!"
+5.  Kirjoitettavia lauseita on yhteensä kolme. Kirjoita samalla 
+	tavalla kaikki lauseet, kunnes peli ilmoittaa "Valmis!"
 
 
 	Paina Enter-painiketta palataksesi alkuvalikkoon
